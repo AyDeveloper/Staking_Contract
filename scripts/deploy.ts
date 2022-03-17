@@ -1,9 +1,4 @@
 /* eslint-disable prettier/prettier */
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 import { Signer } from "ethers";
 
@@ -33,25 +28,30 @@ async function main() {
   ])
 
   // We get the contract to deploy
-  const Staking = await ethers.getContractFactory("Staking");
-  const staking = await Staking.connect(ownerSigner).deploy("Bape", "BAPE", 1000000000000, owner);
+  // const Staking = await ethers.getContractFactory("Staking");
+  // const staking = await Staking.connect(ownerSigner).deploy("Bape", "BAPE", 1000000000000, owner);
 
-  await staking.deployed();
-  console.log('address', staking.address);
+  // await staking.deployed();
+  // console.log('address', staking.address);
   
-  console.log(await staking.balanceOf(owner));
-  await staking.connect(ownerSigner).transfer(boredApeOwner, 1000000)
-  console.log(`balance b4 is`, await staking.balanceOf(boredApeOwner));
+  // console.log(await staking.balanceOf(owner));
+  // await staking.connect(ownerSigner).transfer(boredApeOwner, "1000000")
+  // console.log(`balance b4 is`, await staking.balanceOf(boredApeOwner));
 
-  const getReward = await staking._getInterestAfter3days("100000");
-  const getReward30Days = await staking._getInterest("100000");
+  // const txstake = await staking.connect(boredApeOwnerSigner).stake("10,000");
+  //  console.log(txstake);
 
-//  const txstake = await staking.connect(boredApeOwnerSigner).stake(10000);
- console.log(getReward, getReward30Days);
+  
+ 
 
-// const staking = await ethers.getContractAt('Staking', "0xc70a0bc4A848c599b71f8969523aA9D66E21811a");
-// const afterStake = await staking.stakeBalances(boredApeOwner);
-// console.log(`balance after is ${afterStake}`);
+const staking = await ethers.getContractAt('Staking', "0x06d74519CB7C0AFFBf645A43fafD3ae8C38DB4e7");
+const witTx = await staking.connect(boredApeOwnerSigner).withdrawStake(); 
+console.log(witTx);
+
+const afterStake = await staking.stakeBalances(boredApeOwner);
+console.log(`balance after is ${afterStake}`);
+
+// 1000000
 
 }
 
