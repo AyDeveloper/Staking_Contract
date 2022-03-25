@@ -15,57 +15,124 @@ contract Staking is ERC20 {
         _balances[_owner] += totalsupply_;
     }
 
-    address boredApeAddr = 0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D;
-    IERC721 boredApe = IERC721(boredApeAddr);
-    uint public timeStarts;
-    function stake(uint _amount) public {
-        require(boredApe.balanceOf(msg.sender) >= 1 , "Staking restricted to boredApe Owners");
-        timeStarts = block.timestamp;
-        stakeBalances[msg.sender] += _amount;
-        // calculateRewards(_amount);
+
+    struct Staker{
+        uint amountStaked;
+        address staker;
+        uint startTime;
+        bool staked;
+        uint lastStakedTime;
+        uint compoundStake;
+        uint withdrawalAmount;
     }
-  
 
-    function withdrawStake() public {
-        require(stakeBalances[msg.sender] > 0, "didnt stake");
-        require(block.timestamp > timeStarts, "Cannot withdraw yet");
-        uint amount = stakeBalances[msg.sender];
-       if((block.timestamp - timeStarts) == 30 seconds) {
-           // get rewards for 3 days
-           uint interest = (_getInterestADay(amount) / 10000);
-           uint interestFor3days = (interest * 3);
-           uint profit = amount + interestFor3days;
-           stakeBalances[msg.sender] = profit;
-           console.log(interest , interestFor3days);
-       }
 
-       if(block.timestamp - timeStarts == 300 seconds) {
-           // get reward for 30days
-           uint interest = (_getInterestADay(amount)) / 10000;
-           uint interestFor30days = (interest * 30) ;
-           stakeBalances[msg.sender] += interestFor30days;
-           console.log(interest , interestFor30days);
-       }
+    event StakeEvent(uint _amount, address _staker);
+    event withdrawEvent(uint _amount, address _withdrawer);
 
-        // stakeBalances[msg.sender] = amount;
-       if(block.timestamp - timeStarts > 3 days &&  block.timestamp - timeStarts < 30 days) {
-           uint timeNow = block.timestamp - timeStarts;
-            uint dayNow = timeNow / 86400;
-       }       
+
+
+    mapping(address => Staker) stakers;
+
+    function checkStake() public view returns(Staker memory) {
+        return stakers[msg.sender];
+    }
+
+    function checkStakeByAddress(address _staker) public view returns(Staker memory) {
+        return stakers[_staker];
+    }
+
+    function stake(uint _amount) public returns(uint _total, uint _new) {
+        // set an id that numbers count;
+        // require(boredApe.balanceOf(msg.sender) > 1 , "Staking restricted to boredApe Owners");
+        // transfer from msg.sender to address this
+        // for withdraw, transfer from address this to msg.sender
+        // require the stake token balance of msg.sender is greater than amount
+
+        require(_amount > 0, "Cannot stake less than zero");
+        Staker storage stakerObject = stakers[msg.sender];
+         
+        if(stakerObject.staked) {
+            stakeBalances[msg.sender] += _amount;
+            stakerObject.amountStaked += _amount;
+            stakerObject.lastStakedTime = block.timestamp;
+            (,, uint reward) = yield(stakerObject.compoundStake, stakerObject.startTime);
+              _total = stakerObject.compoundStake + reward;
+            (,,_new) = calculateReyield(_total, stakerObject.startTime);
+            stakerObject.withdrawalAmount = _new + _total;
+           
+            // do a mapping  that compound amount each time they stake and calculate the yield
+            // compunding works with previous total(amount + interest ) + new amount;
+        }
+            uint newStake = _total + _amount;
+            stakeBalances[msg.sender] = newStake;
+            stakerObject.amountStaked = newStake;
+            stakerObject.startTime  = block.timestamp;
+            stakerObject.compoundStake  = newStake;
+            stakerObject.staker  = msg.sender;
+            stakerObject.staked = true;
+            // calculateYield(_amount);
+
+    }
+
+
+
+    function withdrawStake() public returns(uint) {
+        Staker storage stakerObject = stakers[msg.sender];
+        require(stakerObject.staked, "Not a staker");
+        if(block.timestamp - stakerObject.startTime < 30 || block.timestamp - stakerObject.lastStakedTime < 30) {
+            return stakerObject.amountStaked;
+        } 
+        emit  withdrawEvent(stakerObject.withdrawalAmount,msg.sender);
+                stakerObject.amountStaked = 0;
+                stakerObject.staked = false;
+                stakerObject.startTime = 0;
+                stakerObject.lastStakedTime = 0;
+                stakerObject.compoundStake = 0; 
+                stakerObject.withdrawalAmount = 0;
+
     }
 
     function checkStakeBalance() public view returns(uint) {
         return stakeBalances[msg.sender];
     }
 
-     function _getInterest(uint _amount) public pure returns (uint) {
+     function _getInterest(uint _amount) internal pure returns (uint) {
        return   ((_amount * 10) / 100) * 10000;
     }
 
-    
-    function _getInterestADay(uint _amount) public pure returns (uint) {
-       return   ((_amount * 10 / 30) / 100) * 10000;
+    function _useInterest(uint _amount) internal pure returns (uint) {
+        uint interest = (_getInterestPersec(_amount) / 10000000);
+        return interest;
     }
+
+     function calculateYield(uint _amount) public view  returns(uint _a, uint _b, uint _c) {
+         if(block.timestamp - stakers[msg.sender].startTime > 30) {
+            _a = uint(block.timestamp - stakers[msg.sender].startTime);
+                _b = _useInterest(_amount);
+                _c =  _a * _b;
+          
+         }
+    }
+
+     function calculateReyield(uint _amount, uint _time) public view returns(uint _a, uint _b, uint _c) {
+            _a = uint(block.timestamp - _time);
+                _b = _useInterest(_amount);
+                // withdrawNow[msg.sender] = _a * _b;
+                _c =  _a * _b;
+          
+    }
+
+    function yield(uint _amount, uint _lastStaked) public view returns(uint _a, uint _b, uint _c) {
+            _a = uint(block.timestamp - _lastStaked);
+                _b = _useInterest(_amount);
+                _c = _a * _b;
+    }
+
+    function _getInterestPersec(uint _amount) internal pure returns (uint) {
+       return   ((_amount * 10 / (30) / 86400 ) / 100) * 10000000;
+    }
+
 
 
 }
