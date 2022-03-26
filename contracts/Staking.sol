@@ -54,6 +54,7 @@ contract Staking is ERC20 {
          
         if(stakerObject.staked) {
             stakeBalances[msg.sender] += _amount;
+            transfer(address(this), _amount);
             stakerObject.amountStaked += _amount;
             stakerObject.lastStakedTime = block.timestamp;
             (,, uint reward) = yield(stakerObject.compoundStake, stakerObject.startTime);
@@ -66,6 +67,7 @@ contract Staking is ERC20 {
         }
             uint newStake = _total + _amount;
             stakeBalances[msg.sender] = newStake;
+            transfer(address(this), newStake);
             stakerObject.amountStaked = newStake;
             stakerObject.startTime  = block.timestamp;
             stakerObject.compoundStake  = newStake;
@@ -77,19 +79,24 @@ contract Staking is ERC20 {
 
 
 
-    function withdrawStake() public returns(uint) {
+    function withdrawStake() public {
         Staker storage stakerObject = stakers[msg.sender];
-        require(stakerObject.staked, "Not a staker");
-        if(block.timestamp - stakerObject.startTime < 30 || block.timestamp - stakerObject.lastStakedTime < 30) {
-            return stakerObject.amountStaked;
-        } 
-        emit  withdrawEvent(stakerObject.withdrawalAmount,msg.sender);
-                stakerObject.amountStaked = 0;
-                stakerObject.staked = false;
-                stakerObject.startTime = 0;
-                stakerObject.lastStakedTime = 0;
-                stakerObject.compoundStake = 0; 
-                stakerObject.withdrawalAmount = 0;
+        // require(stakerObject.staked, "Not a staker");
+        if(block.timestamp - stakerObject.startTime < 300 seconds) {
+            _transfer(address(this), msg.sender, stakerObject.amountStaked);
+            // _balances[address(this)] -= stakerObject.amountStaked;
+
+        } else {
+            emit  withdrawEvent(stakerObject.withdrawalAmount,msg.sender);
+                transfer(msg.sender, stakerObject.withdrawalAmount);
+
+                    stakerObject.amountStaked = 0;
+                    stakerObject.staked = false;
+                    stakerObject.startTime = 0;
+                    stakerObject.lastStakedTime = 0;
+                    stakerObject.compoundStake = 0; 
+                    stakerObject.withdrawalAmount = 0;
+        }
 
     }
 
