@@ -110,12 +110,12 @@ contract Staking is ERC20 {
        return   ((_amount * 10) / 100) * 10000;
     }
 
-    function _useInterest(uint _amount) public pure returns (uint) {
+    function _useInterest(uint _amount) internal pure returns (uint) {
         uint interest = (_getInterestPersec(_amount) / 10000000);
         return interest;
     }
 
-     function calculateYield(uint _amount) public view  returns(uint _a, uint _b, uint _c) {
+     function calculateYield(uint _amount) internal view  returns(uint _a, uint _b, uint _c) {
          if(block.timestamp - stakers[msg.sender].startTime > 300 seconds) {
             _a = uint(block.timestamp - stakers[msg.sender].startTime);
                 _b = _useInterest(_amount);
@@ -124,7 +124,7 @@ contract Staking is ERC20 {
          }
     }
 
-     function calculateReyield(uint _amount, uint _time) public view returns(uint _a, uint _b, uint _c) {
+     function calculateReyield(uint _amount, uint _time) internal view returns(uint _a, uint _b, uint _c) {
             _a = uint(block.timestamp - _time);
                 _b = _useInterest(_amount);
                 // withdrawNow[msg.sender] = _a * _b;
@@ -132,7 +132,7 @@ contract Staking is ERC20 {
           
     }
 
-    function yield(uint _amount, uint _lastStaked) public view returns(uint _a, uint _b, uint _c) {
+    function yield(uint _amount, uint _lastStaked) internal view returns(uint _a, uint _b, uint _c) {
             _a = uint(block.timestamp - _lastStaked);
                 _b = _useInterest(_amount);
                 _c = _a * _b;
