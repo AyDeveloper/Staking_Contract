@@ -3,10 +3,10 @@ import { ethers } from "hardhat";
 import { Signer } from "ethers";
 
 async function main() {
-  const boredApeOwner = "0xcee749f1cfc66cd3fb57cefde8a9c5999fbe7b8f";
+  // const boredApeOwner = "0xcee749f1cfc66cd3fb57cefde8a9c5999fbe7b8f";
   const owner = "0x9ae1e982Fc9A9D799e611843CB9154410f11Fe35";
 
-  const boredApeOwnerSigner: Signer = await ethers.getSigner(boredApeOwner);
+  // const boredApeOwnerSigner: Signer = await ethers.getSigner(boredApeOwner);
   const ownerSigner: Signer = await ethers.getSigner(owner);
 
    // @ts-ignore
@@ -14,12 +14,6 @@ async function main() {
     method: "hardhat_impersonateAccount",
     params: [owner],
   });
-
-    // @ts-ignore
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [boredApeOwner],
-    });
 
   // @ts-ignore
   await network.provider.send("hardhat_setBalance", [
@@ -29,29 +23,28 @@ async function main() {
 
   // We get the contract to deploy
   // const Staking = await ethers.getContractFactory("Staking");
-  // const staking = await Staking.connect(ownerSigner).deploy("Bape", "BAPE", 1000000000000, owner);
+  // const staking = await Staking.deploy("0x0403402d232f96FaeB67224C1eA68D715fFD8133");
 
   // await staking.deployed();
   // console.log('address', staking.address);
   
-  // console.log(await staking.balanceOf(owner));
-  // await staking.connect(ownerSigner).transfer(boredApeOwner, "1000000")
-  // console.log(`balance b4 is`, await staking.balanceOf(boredApeOwner));
 
-  // const txstake = await staking.connect(boredApeOwnerSigner).stake("10,000");
-  //  console.log(txstake);
+const staking = await ethers.getContractAt('Staking', "0x40a42Baf86Fc821f972Ad2aC878729063CeEF403");
+await staking.connect(ownerSigner).stakeNow("100"); 
 
-  
- 
+// @ts-ignore
+await network.provider.send("evm_increaseTime", [2592000]);
+// @ts-ignore
+await network.provider.send("evm_mine");
 
-const staking = await ethers.getContractAt('Staking', "0x06d74519CB7C0AFFBf645A43fafD3ae8C38DB4e7");
-const witTx = await staking.connect(boredApeOwnerSigner).withdrawStake(); 
-console.log(witTx);
 
-const afterStake = await staking.stakeBalances(boredApeOwner);
-console.log(`balance after is ${afterStake}`);
+// await staking.withdrawStake('10');
+console.log(await staking.connect(ownerSigner).checkStakeBalance());
+console.log(await staking.connect(ownerSigner).calculateYield("100", owner));
+console.log(await staking.connect(ownerSigner).checkStake());
+// console.log(await staking._getInterestPersec("100000000000000000"));
 
-// 1000000
+
 
 }
 
