@@ -25,18 +25,19 @@ async function main() {
 
   // console.log(`deployed token address`, dearToken.address);
 
-  const instance = await ethers.getContractAt("IERC20","0x0403402d232f96FaeB67224C1eA68D715fFD8133")
+  const instance = await ethers.getContractAt("IERC20","0x0C669838b390DF27CEEdc9Af53da6371590e4Fc4")
 
-//   const bal = await instance.balanceOf(ownerAddr);
+  const bal = await instance.balanceOf(ownerAddr);
 
-  await instance.connect(signer1).approve("0x40a42Baf86Fc821f972Ad2aC878729063CeEF403", "10000");
-  const allowed = await instance.allowance(ownerAddr,"0x40a42Baf86Fc821f972Ad2aC878729063CeEF403");
+  await instance.connect(signer1).approve("0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27", "10000");
+  const allowed = await instance.allowance(ownerAddr,"0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27");
 //   console.log(`contract balance is ${bal}`);
-  console.log(`claimer balance is ${allowed}`);
+  console.log(`contract allowance is ${allowed}`);
 
-  await instance.connect(signer1).transfer("0x40a42Baf86Fc821f972Ad2aC878729063CeEF403", "100000000000000000000")
-    const bal = await instance.balanceOf("0x40a42Baf86Fc821f972Ad2aC878729063CeEF403");
-    console.log(`bal of contract ${bal}`);
+  await instance.connect(signer1).transfer("0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27", "100000000000000000000")
+    const bal1 = await instance.balanceOf("0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27");
+    const bal2 = await instance.balanceOf(ownerAddr);
+    console.log(`bal of owner ${bal2} and bal of th contract ${bal1}`);
     
 
 }

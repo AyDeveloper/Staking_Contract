@@ -23,13 +23,13 @@ async function main() {
 
   // We get the contract to deploy
   // const Staking = await ethers.getContractFactory("Staking");
-  // const staking = await Staking.deploy("0x0403402d232f96FaeB67224C1eA68D715fFD8133");
+  // const staking = await Staking.deploy("0x0C669838b390DF27CEEdc9Af53da6371590e4Fc4");
 
   // await staking.deployed();
   // console.log('address', staking.address);
   
 
-const staking = await ethers.getContractAt('Staking', "0x40a42Baf86Fc821f972Ad2aC878729063CeEF403");
+const staking = await ethers.getContractAt('Staking', "0x74Cf9087AD26D541930BaC724B7ab21bA8F00a27");
 await staking.connect(ownerSigner).stakeNow("100"); 
 
 // @ts-ignore
@@ -38,11 +38,12 @@ await network.provider.send("evm_increaseTime", [2592000]);
 await network.provider.send("evm_mine");
 
 
-// await staking.withdrawStake('10');
+await staking.connect(ownerSigner).withdrawStake('10');
 console.log(await staking.connect(ownerSigner).checkStakeBalance());
 console.log(await staking.connect(ownerSigner).calculateYield("100", owner));
-console.log(await staking.connect(ownerSigner).checkStake());
-// console.log(await staking._getInterestPersec("100000000000000000"));
+// console.log(await staking.connect(ownerSigner).checkStake());
+
+
 
 
 

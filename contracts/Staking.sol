@@ -57,28 +57,25 @@ contract Staking {
 
     }
 
-
-
-    function withdrawStake(uint _amount) public {
+    function withdrawStake(uint208 _amount) public {
         Staker storage stakerObject = stakers[msg.sender];
-        uint256 daySpent = block.timestamp - stakerObject.startTime;
+        uint96 daySpent = uint96(block.timestamp) - stakerObject.startTime;
+         require(_amount <= stakerObject.amountStaked, "Insufficient fund");
 
         if(daySpent > maxTime){
             (,, uint256 _yield) =  calculateYield(stakerObject.amountStaked, msg.sender);
-            uint256 totalAmount =  stakerObject.amountStaked + _yield;
-            // require(_amount <= totalAmount, "Insufficient fund");
-            stakerObject.amountStaked = totalAmount - _amount;
-            stakerObject.reward -= _amount;
-            dearTokenInstance.transfer(msg.sender, _amount);
+            stakerObject.amountStaked += _yield;
+            stakerObject.amountStaked -= uint208(_amount);
             stakerObject.startTime = uint96(block.timestamp);
         } else {
-            require(stakerObject.amountStaked >= _amount, "Insufficient fund");
-            stakerObject.amountStaked = stakerObject.amountStaked - _amount;
+            require(_amount <= stakerObject.amountStaked, "Insufficient fund");
+            stakerObject.amountStaked -= _amount;
             stakerObject.startTime = uint96(block.timestamp);
         }
+
         dearTokenInstance.transfer(msg.sender, _amount);
         stakerObject.startTime = uint96(block.timestamp);
-        // stakerObject.amount > 0 ? stakerObject.staked = true : stakerObject.staked = false;
+        stakerObject.amountStaked > 0 ? stakerObject.staked = true : stakerObject.staked = false;
         emit withdrawEvent(stakerObject.amountStaked, msg.sender);
 
     }
@@ -116,13 +113,11 @@ contract Staking {
                (_b) = _getInterestPersec(_amount);
 
                 uint b =   _a * _b;
-                _c = b  / 100000000000000;
+                _c = b  / 1000000000000000;
         }
 
-    function _getInterestPersec(uint _amount) public pure returns (uint _f) {
-        // uint amountWei = _amount * 1e18;
-        uint a = (10 * 10000000);
-        uint b = a / 100;
+    function _getInterestPersec(uint _amount) internal pure returns (uint _f) {
+        uint b = 1000000000 / 100;
         uint c = b / 30;
         uint d = (c * 10000000);
         uint e = d / 86400;
